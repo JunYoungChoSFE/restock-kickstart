@@ -1,0 +1,126 @@
+// Pinged — 재입고 알림 앱 Prisma 스키마 (CLAUDE.md 4절)
+// 멀티테넌시: 모든 도메인 모델은 shopId로 분리. 쿼리에 항상 shopId 스코프를 건다.
+// 신뢰성: 발송은 DB 기반 큐(NotificationJob)로 durable·멱등·재시도. 모든 발송 시도는 NotificationLog에 남긴다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+// ── Shopify 세션 저장소 (shopify-app-session-storage-prisma) ──────────────────
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// ── Pinged 도메인 ─────────────────────────────────────────────────────────────
+
+// 가맹점. APP_UNINSTALLED / shop/redact 시 cascade로 전부 삭제(클린 언인스톨, 흔적 0).
+model Shop {
+  id          String   @id @default(cuid())
+  shopDomain  String   @unique
+  accessToken String?
+  plan        String   @default("free") // free | pro
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  setting       Setting?
+  subscriptions Subscription[]
+  notifications NotificationLog[]
+  jobs          NotificationJob[]
+}
+
+// shopId별 설정: 버튼 디자인, 이메일 템플릿, 발송 임계치, 채널 on/off.
+model Setting {
+  id             String   @id @default(cuid())
+  shopId         String   @unique
+  shop           Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  buttonText     String   @default("Notify me when available")
+  buttonColor    String   @default("#000000")
+  buttonPosition String   @default("below_form") // 위젯 배치 힌트
+  emailFromName  String   @default("")
+  emailSubject   String   @default("Good news — it's back in stock!")
+  threshold      Int      @default(1) // 재고가 이 수량 이상일 때만 발송
+  emailEnabled   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// 고객의 "입고 알림" 신청 (variant 단위). 멱등성: (shop, variant, email) 유일.
+model Subscription {
+  id           String   @id @default(cuid())
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId    String
+  variantId    String
+  productTitle String   @default("")
+  variantTitle String   @default("")
+  email        String
+  channel      String   @default("email")
+  status       String   @default("pending") // pending | notified | cancelled
+  createdAt    DateTime @default(now())
+  notifiedAt   DateTime?
+
+  notifications NotificationLog[]
+  job           NotificationJob?
+
+  @@unique([shopId, variantId, email])
+  @@index([shopId, variantId, status])
+}
+
+// 발송 로그 — 상인 투명성의 핵심. 모든 발송 시도(성공/실패/재시도)를 기록.
+model NotificationLog {
+  id                String   @id @default(cuid())
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  subscriptionId    String
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  channel           String   @default("email")
+  status            String   // sent | failed | retrying
+  providerMessageId String?
+  error             String?
+  attempts          Int      @default(0)
+  createdAt         DateTime @default(now())
+  sentAt            DateTime?
+
+  @@index([shopId, status])
+}
+
+// DB 기반 발송 큐 (신뢰성 코어, Redis 불필요).
+// 인프로세스 워커가 runAt이 지난 queued 잡을 lock→처리. 백오프 재시도, subscription당 1잡(멱등).
+model NotificationJob {
+  id             String   @id @default(cuid())
+  shopId         String
+  shop           Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  subscriptionId String   @unique
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  status         String   @default("queued") // queued | processing | done | failed
+  attempts       Int      @default(0)
+  maxAttempts    Int      @default(5)
+  runAt          DateTime @default(now()) // 백오프 스케줄링
+  lockedAt       DateTime?
+  lastError      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, runAt])
+}
