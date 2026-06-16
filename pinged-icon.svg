@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#10B981"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" rx="268" fill="url(#bg)"/>
+  <!-- bell handle -->
+  <circle cx="600" cy="356" r="36" fill="#FFFFFF"/>
+  <!-- bell body -->
+  <path d="M 600 376
+           C 712 376 776 456 776 568
+           C 776 660 800 712 836 748
+           C 848 760 840 780 822 780
+           L 378 780
+           C 360 780 352 760 364 748
+           C 400 712 424 660 424 568
+           C 424 456 488 376 600 376 Z"
+        fill="#FFFFFF"/>
+  <!-- clapper -->
+  <circle cx="600" cy="828" r="50" fill="#FFFFFF"/>
+</svg>
