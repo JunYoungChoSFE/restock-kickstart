@@ -2,7 +2,7 @@
 
 client_id = "4b71825a9e5bcd35e35796a4b422a79c"
 name = "Pinged"
-application_url = "https://shopify.dev/apps/default-app-home"
+application_url = "https://pinged.fly.dev"
 embedded = true
 
 [webhooks]
@@ -35,12 +35,16 @@ api_version = "2026-07"
 scopes = "read_inventory,read_products"
 
 [auth]
-redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+redirect_urls = [
+  "https://pinged.fly.dev/auth/callback",
+  "https://pinged.fly.dev/auth/shopify/callback",
+  "https://pinged.fly.dev/api/auth/callback"
+]
 
 # 스토어프론트 "입고 알림" 버튼 → 신청 캡처.
 #   /apps/pinged/subscribe → 앱 /proxy/subscribe (proxy.subscribe.tsx)
 [app_proxy]
-url = "https://shopify.dev/apps/default-app-home/proxy"
+url = "https://pinged.fly.dev/proxy"
 prefix = "apps"
 subpath = "pinged"
 
