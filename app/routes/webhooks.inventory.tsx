@@ -29,7 +29,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           id
           inventoryQuantity
           title
-          product { id title status onlineStoreUrl }
+          product { id title status onlineStoreUrl publishedAt }
         }
       }
     }`,
@@ -47,6 +47,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             title: string;
             status: ProductStatus;
             onlineStoreUrl: string | null;
+            publishedAt: string | null;
           } | null;
         } | null;
       } | null;
@@ -63,7 +64,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     newAvailable: variant.inventoryQuantity ?? 0,
     threshold: shopRow.setting?.threshold ?? 1,
     productStatus: variant.product.status,
-    publishedToOnlineStore: Boolean(variant.product.onlineStoreUrl),
+    // publishedAt = Online Store 게시 시각(가장 정확한 게시 신호). onlineStoreUrl은 보조.
+    publishedToOnlineStore: Boolean(
+      variant.product.publishedAt || variant.product.onlineStoreUrl,
+    ),
   });
 
   if (!decision.fire) {
