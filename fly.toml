@@ -1,0 +1,37 @@
+# Fly.io config for the Pinged app.
+# ⚠️ `app` must be globally unique — change "pinged-restock" if taken, and update
+#    SHOPIFY_APP_URL + the toml application_url/redirect/app_proxy to match the resulting URL.
+app = "pinged-restock"
+primary_region = "nrt"  # Tokyo — closest Fly region to Korea
+
+[http_service]
+  processes = ["app"]
+  internal_port = 3000
+  force_https = true
+  # Keep the machine always on so the inventory webhook + send worker never miss a restock.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[mounts]
+  source = "data"
+  destination = "/data"
+  auto_extend_size_threshold = 80
+  auto_extend_size_increment = "1GB"
+  auto_extend_size_limit = "10GB"
+
+[processes]
+  app = "node ./dbsetup.js npm run docker-start"
+
+[env]
+  PORT = 3000
+  SHOPIFY_APP_URL = "https://pinged-restock.fly.dev"
+  SHOPIFY_API_KEY = "4b71825a9e5bcd35e35796a4b422a79c"
+  SCOPES = "read_inventory,read_products"
+  # WORKER_TICK_MS defaults to 15000. Do NOT set DISABLE_WORKER in production.
+  # Secrets (NOT here): SHOPIFY_API_SECRET, RESEND_API_KEY, EMAIL_FROM, CRON_SECRET
+  #   → set with: fly secrets set KEY=value
