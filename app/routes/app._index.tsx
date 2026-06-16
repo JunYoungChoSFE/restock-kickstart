@@ -70,6 +70,15 @@ export default function Dashboard() {
         Settings
       </s-button>
 
+      <s-banner tone="info" heading="Pinged runs automatically">
+        <s-paragraph>
+          You don't restock inside Pinged. Update inventory however you normally
+          do — manual edit, CSV import, a supplier/POS sync, anything. The moment
+          a subscribed product is back in stock, Pinged emails the waiting
+          customers within seconds. No extra step from you.
+        </s-paragraph>
+      </s-banner>
+
       <s-section heading="Overview">
         <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
           <StatCard label="Waiting (subscribed)" value={waiting.toLocaleString()} />
