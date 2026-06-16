@@ -15,20 +15,27 @@ export async function enqueueRestock(
     where: { shopId, variantId, status: "pending" },
     select: { id: true },
   });
+  console.log(
+    `[enqueue] shop=${shopId} variant=${variantId}: ${subs.length} pending found`,
+  );
   if (subs.length === 0) return 0;
 
-  let created = 0;
-  // SQLite는 createMany(skipDuplicates) 미지원 → subscriptionId @unique 기준 upsert로 멱등 처리.
+  // subscriptionId가 @unique이므로 upsert로 멱등 처리.
+  //  - 새 신청: 잡 생성.
+  //  - 이미 잡이 있으면(이전 알림 done/failed, 재품절 후 재구독 등) **queued로 리셋** → 다시 발송.
+  //    같은 재입고의 중복 웹훅엔 그냥 queued 유지(부작용 없음). 워커의 멱등성이 중복 발송을 막는다.
   for (const s of subs) {
-    const existing = await db.notificationJob.findUnique({
+    await db.notificationJob.upsert({
       where: { subscriptionId: s.id },
-      select: { id: true },
+      create: { shopId, subscriptionId: s.id },
+      update: {
+        status: "queued",
+        attempts: 0,
+        lockedAt: null,
+        lastError: null,
+        runAt: new Date(),
+      },
     });
-    if (existing) continue;
-    await db.notificationJob.create({
-      data: { shopId, subscriptionId: s.id },
-    });
-    created++;
   }
-  return created;
+  return subs.length;
 }

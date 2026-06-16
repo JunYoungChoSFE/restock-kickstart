@@ -33,13 +33,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const shop = await ensureShop(shopDomain);
-  await db.subscription.upsert({
+  const sub = await db.subscription.upsert({
     where: {
       shopId_variantId_email: { shopId: shop.id, variantId, email },
     },
     create: { shopId: shop.id, productId, variantId, productTitle, variantTitle, email },
     update: { status: "pending", notifiedAt: null }, // 재신청 시 다시 대기 상태로
   });
+  console.log(
+    `[subscribe] ${email} variant=${variantId} shop=${shop.id} → status=${sub.status}`,
+  );
 
   return data({ ok: true });
 };

@@ -37,14 +37,39 @@ async function seed(opts: { variantId?: string; email?: string } = {}) {
 beforeEach(reset);
 
 describe("enqueueRestock — 멱등 enqueue", () => {
-  it("pending 신청당 잡 1개, 두 번 호출해도 중복 없음", async () => {
+  it("pending 신청당 잡 1개, 두 번 호출해도 잡은 중복 생성 안 됨(upsert로 re-queue)", async () => {
     const { shop, sub } = await seed();
     expect(await enqueueRestock(shop.id, "v1")).toBe(1);
-    expect(await enqueueRestock(shop.id, "v1")).toBe(0); // 이미 큐에 있음
+    expect(await enqueueRestock(shop.id, "v1")).toBe(1); // 재호출도 1(re-queue), 잡은 그대로 1개
     const jobs = await db.notificationJob.findMany({
       where: { subscriptionId: sub.id },
     });
     expect(jobs).toHaveLength(1);
+  });
+
+  it("이전 알림이 done이어도 재구독(pending) 시 다시 queued로 발송됨", async () => {
+    const { shop, sub } = await seed();
+    await enqueueRestock(shop.id, "v1");
+    // 첫 발송 완료처럼: 잡 done + 구독 notified
+    await db.notificationJob.update({
+      where: { subscriptionId: sub.id },
+      data: { status: "done" },
+    });
+    await db.subscription.update({
+      where: { id: sub.id },
+      data: { status: "notified" },
+    });
+    // 재품절 후 재구독: 다시 pending
+    await db.subscription.update({
+      where: { id: sub.id },
+      data: { status: "pending" },
+    });
+    // 재입고 → 기존 done 잡이 queued로 리셋되어야 함
+    expect(await enqueueRestock(shop.id, "v1")).toBe(1);
+    const job = await db.notificationJob.findFirstOrThrow({
+      where: { subscriptionId: sub.id },
+    });
+    expect(job.status).toBe("queued");
   });
 
   it("pending 아닌 신청은 큐에 안 넣음", async () => {
