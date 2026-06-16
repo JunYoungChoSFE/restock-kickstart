@@ -9,12 +9,10 @@ import { runDueJobs, type Sender } from "../jobs/sendNotification";
 const okSender: Sender = async () => ({ ok: true, id: "msg_1" });
 const failSender: Sender = async () => ({ ok: false, error: "smtp 500" });
 
+// ⚠️ 테스트 상점만 삭제(cascade) — dev.sqlite를 공유하므로 실제 dev 데이터는 절대 건드리지 않는다.
+const TEST_SHOP = "demo.myshopify.com";
 async function reset() {
-  await db.notificationLog.deleteMany();
-  await db.notificationJob.deleteMany();
-  await db.subscription.deleteMany();
-  await db.setting.deleteMany();
-  await db.shop.deleteMany();
+  await db.shop.deleteMany({ where: { shopDomain: TEST_SHOP } });
 }
 
 async function seed(opts: { variantId?: string; email?: string } = {}) {

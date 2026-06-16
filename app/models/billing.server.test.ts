@@ -10,12 +10,10 @@ import { runDueJobs, type Sender } from "../jobs/sendNotification";
 
 const okSender: Sender = async () => ({ ok: true, id: "m" });
 
+// ⚠️ 테스트 상점만 삭제(cascade) — dev.sqlite 공유, 실제 dev 데이터 보호.
+const TEST_SHOP = "demo.myshopify.com";
 async function reset() {
-  await db.notificationLog.deleteMany();
-  await db.notificationJob.deleteMany();
-  await db.subscription.deleteMany();
-  await db.setting.deleteMany();
-  await db.shop.deleteMany();
+  await db.shop.deleteMany({ where: { shopDomain: TEST_SHOP } });
 }
 
 beforeEach(reset);
