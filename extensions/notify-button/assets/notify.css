@@ -1,0 +1,39 @@
+/* Pinged back-in-stock button — 코드 0으로 깔끔하게(가드레일). 브랜드 색은 --pinged-color. */
+.pinged-notify {
+  margin: 12px 0;
+}
+.pinged-form {
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+}
+.pinged-heading {
+  margin: 0;
+  font-weight: 600;
+}
+.pinged-input {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pinged-btn {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--pinged-color, #000);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.pinged-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.pinged-msg {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
