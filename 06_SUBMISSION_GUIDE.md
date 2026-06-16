@@ -60,34 +60,37 @@ shopify app deploy
 
 ## PART 2 — App Store 리스팅 값 (복붙)
 
-**Name**
+> ⚠️ **App icon**: 이 폼 칸이 아니라 **Dev Dashboard → Pinged 앱 App setup의 App icon**에 `pinged-icon.png` 업로드 → 여기 자동 동기화.
+> ✅ **App category**: `Marketing and conversion › Upsell and bundles › Stock alerts` (정확). 하위 태그 Auto-alerts / Notification button / Customer demand 그대로.
+
+**Name** (⚠️ **≤30자** — 길면 단어 중간에서 잘림)
 ```
-Pinged — Reliable Back-in-Stock Alerts
+Pinged: Back-in-Stock Alerts
 ```
 
-**App introduction** (2문장, "price/pricing" 단어 금지 — 린터 회피)
+**App introduction** (⚠️ **≤100자** — 길면 잘림. pricing 단어 금지)
 ```
-Pinged adds a "notify me" button to your sold-out products and emails customers the moment those items are back in stock. Sends happen within seconds and every one is logged, so you can trust your alerts actually go out.
+Add a notify-me button to sold-out products and email customers within seconds of a restock.
 ```
 
-**App details** ("program"/"price" 같은 pricing 단어 금지, 링크 금지)
+**App details** (≤500자, pricing 단어/링크 금지)
 ```
 Pinged adds a "notify me" button to your sold-out product pages. When a customer subscribes and the product is restocked by any method, Pinged emails them within seconds rather than on a slow batch. Every send is recorded in a log so you can prove the alert went out, and a waitlist shows which products customers want back the most. Setup takes a few minutes with no code, and the button matches your brand color.
 ```
 
-**Features** (3~5)
+**Features** (3~5, 각 ≤80자)
 ```
-1. Instant alerts — subscribers are emailed within seconds of a restock, not on a delayed batch
-2. Send log — every notification attempt is recorded with its status, so you can trust it went out
-3. No wrong sends — only published, in-stock products trigger emails, never drafts or hidden ones
-4. Waitlist demand insight — see which sold-out products have the most customers waiting
-5. No-code storefront button that matches your brand color
+Instant alerts — subscribers are emailed within seconds of a restock, not a batch
+Send log — every notification is recorded with its status, so you know it went out
+No wrong sends — only published, in-stock products trigger emails, never drafts
+Waitlist demand insight — see which sold-out products have the most customers waiting
+No-code storefront button that matches your brand color
 ```
 
-**Pricing**
+**Pricing details** (플랜 2개 추가. ⚠️ "approval to charge outside Billing API" 체크 X)
 ```
-Free — $0/mo  — Notify button, instant sends, and the send log. Up to 50 notifications per month.
-Pro  — $19/mo — Unlimited notifications. No per-alert fees, no hidden costs. Flat monthly.
+Free — price 0          — Notify button, instant sends, and the send log. Up to 50 notifications per month.
+Pro  — price 19 / month — Unlimited notifications. No per-alert fees, no hidden costs.
 ```
 
 **App card subtitle** (≤62)
@@ -100,17 +103,39 @@ Reliable back-in-stock alerts with a send log you can trust
 back in stock, restock, notify me, inventory alert, waitlist
 ```
 
+**Web search content** (선택)
+- Title tag: `Pinged — Reliable Back-in-Stock Alerts for Shopify`
+- Meta description: `Add a notify-me button to sold-out products and email customers within seconds of a restock — with a send log you can trust. Five-minute setup, no code.`
+
+**Feature media**
+- **Video** 탭 → Video URL: `https://www.youtube.com/embed/<영상ID>` + 썸네일에 스크린샷 1장
+- 또는 **Image** 탭 → 1600×900 이미지(원하면 배너 만들어줌)
+
+**Screenshots** (≥3, 각 alt text 필수)
+```
+1. Pinged dashboard with waiting, notified and recent sends
+2. Send log showing each notification with sent status
+3. Storefront notify-me button on a sold-out product
+4. Waitlist of products customers are waiting for
+5. Plan page — Free and Pro
+```
+
 **Install requirements**: **Shopify Online Store 선택** (Theme App Extension 버튼).
 
 **App setup**
 | 필드 | 값 |
 |---|---|
-| App URL | `https://pinged-restock.fly.dev` (실제 fly URL) |
-| Allowed redirection URL(s) | `.../auth/callback`, `.../auth/shopify/callback`, `.../api/auth/callback` |
+| App URL | `https://pinged-restock.fly.dev` |
+| Allowed redirection URL(s) | `https://pinged-restock.fly.dev/auth/callback`, `https://pinged-restock.fly.dev/auth/shopify/callback`, `https://pinged-restock.fly.dev/api/auth/callback` |
 | GDPR mandatory webhooks | `https://pinged-restock.fly.dev/webhooks/compliance` |
 
 **Support email**: `liger4903@gmail.com`
-**Privacy policy URL**: STEP 4의 공개 URL
+**Privacy policy URL**: `https://github.com/JunYoungChoSFE/restock-kickstart/blob/main/08_PRIVACY_POLICY_EN.md`
+**Contact information** (Merchant review email + App submission email): `liger4903@gmail.com`
+
+**App testing information**
+- Test account → **"My app doesn't require an account to use it" 체크**
+- Screencast URL → 당신 YouTube 영상 링크 (`https://youtu.be/...`)
 
 **Test instructions (심사관용 — 복붙)**
 ```
