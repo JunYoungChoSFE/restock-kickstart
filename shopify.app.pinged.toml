@@ -1,17 +1,12 @@
-# Pinged — 재입고 알림 앱 설정.
-# ⚠️ client_id / application_url 은 `shopify app config link`(Step 2)가 채운다.
-#    링크 후 이 파일의 scopes·webhooks·app_proxy 를 `shopify app deploy` 로 푸시한다.
-client_id = "REPLACE_VIA_shopify_app_config_link"
-application_url = "https://pinged.example.fly.dev"
-embedded = true
-name = "Pinged"
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-[access_scopes]
-# 최소 권한(가드레일): 재고 변화 감지 + 상품 상태/게시 확인용 읽기만. write 없음.
-scopes = "read_products,read_inventory"
+client_id = "4b71825a9e5bcd35e35796a4b422a79c"
+name = "Pinged"
+application_url = "https://shopify.dev/apps/default-app-home"
+embedded = true
 
 [webhooks]
-api_version = "2025-10"
+api_version = "2026-07"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/uninstalled"
@@ -35,19 +30,20 @@ api_version = "2025-10"
     "shop/redact",
   ]
 
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_inventory,read_products"
+
 [auth]
-redirect_urls = [
-  "https://pinged.example.fly.dev/auth/callback",
-  "https://pinged.example.fly.dev/auth/shopify/callback",
-  "https://pinged.example.fly.dev/api/auth/callback"
-]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
 
 # 스토어프론트 "입고 알림" 버튼 → 신청 캡처.
 #   /apps/pinged/subscribe → 앱 /proxy/subscribe (proxy.subscribe.tsx)
 [app_proxy]
-url = "https://pinged.example.fly.dev/proxy"
+url = "https://shopify.dev/apps/default-app-home/proxy"
 prefix = "apps"
 subpath = "pinged"
 
 [build]
+include_config_on_deploy = true
 automatically_update_urls_on_dev = true
