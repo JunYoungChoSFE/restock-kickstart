@@ -16,6 +16,11 @@ api_version = "2026-07"
   uri = "/webhooks/app/scopes_update"
   topics = [ "app/scopes_update" ]
 
+  # Billing: 구독 상태 변화 시 플랜(free/pro) 동기화
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/subscriptions_update"
+  topics = [ "app_subscriptions/update" ]
+
   # 재입고 감지 → 발송 큐
   [[webhooks.subscriptions]]
   uri = "/webhooks/inventory"

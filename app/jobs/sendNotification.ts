@@ -7,6 +7,7 @@ import db from "../db.server";
 import { nextJobState, type SendOutcome } from "../lib/queue/retry";
 import { buildRestockEmail } from "../lib/email/templates";
 import { deliver } from "../lib/email/send";
+import { canSend, monthlyNotificationCount } from "../models/billing.server";
 
 /** 발송 함수 — 테스트에서 주입 가능(성공/실패 시뮬레이션). */
 export type Sender = (
@@ -33,6 +34,7 @@ export interface RunResult {
   retried: number;
   failed: number;
   skipped: number;
+  held: number; // 무료 한도 초과로 보류
 }
 
 export async function runDueJobs(opts: RunOptions = {}): Promise<RunResult> {
@@ -52,7 +54,20 @@ export async function runDueJobs(opts: RunOptions = {}): Promise<RunResult> {
     retried: 0,
     failed: 0,
     skipped: 0,
+    held: 0,
   };
+
+  // 한 run 동안 상점별 플랜·이번 달 발송수 캐시(잡마다 재조회 방지).
+  const billing = new Map<string, { plan: string; sent: number }>();
+  async function billingFor(shopId: string) {
+    let b = billing.get(shopId);
+    if (!b) {
+      const shop = await db.shop.findUnique({ where: { id: shopId } });
+      b = { plan: shop?.plan ?? "free", sent: await monthlyNotificationCount(shopId) };
+      billing.set(shopId, b);
+    }
+    return b;
+  }
 
   for (const job of due) {
     // lock: 같은 잡을 다른 패스가 집지 않게 processing으로.
@@ -72,6 +87,18 @@ export async function runDueJobs(opts: RunOptions = {}): Promise<RunResult> {
         data: { status: "done", lockedAt: null },
       });
       result.skipped++;
+      continue;
+    }
+
+    // 무료 한도 게이트: Free 상점이 이번 달 한도를 넘었으면 발송하지 않고 보류(held).
+    // Pro 전환 시 releaseHeldJobs로 다시 큐에 들어간다. (핵심 기능은 안 잠금, 발송량만 게이트.)
+    const bill = await billingFor(job.shopId);
+    if (!canSend(bill.plan, bill.sent)) {
+      await db.notificationJob.update({
+        where: { id: job.id },
+        data: { status: "held", lockedAt: null },
+      });
+      result.held++;
       continue;
     }
 
@@ -119,6 +146,7 @@ export async function runDueJobs(opts: RunOptions = {}): Promise<RunResult> {
           data: { status: "done", attempts: t.attempts, lockedAt: null },
         }),
       ]);
+      bill.sent++; // 이번 run 안에서도 한도 누적
       result.sent++;
     } else if (t.status === "queued") {
       const runAt = new Date(now.getTime() + t.runAtDelayMs);

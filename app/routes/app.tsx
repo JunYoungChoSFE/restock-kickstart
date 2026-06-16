@@ -22,6 +22,7 @@ export default function App() {
         <s-link href="/app/waitlist">Waitlist</s-link>
         <s-link href="/app/logs">Send log</s-link>
         <s-link href="/app/settings">Settings</s-link>
+        <s-link href="/app/billing">Plan</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>

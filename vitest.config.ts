@@ -7,5 +7,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     include: ["app/**/*.test.ts"],
+    // DB 통합 테스트들이 같은 dev.sqlite를 공유하므로 파일 병렬 실행 금지(서로 reset 충돌 방지).
+    fileParallelism: false,
   },
 });
