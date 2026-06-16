@@ -23,6 +23,8 @@ export async function deliver(
     return { ok: true, id: undefined }; // dev: 발송 성공으로 간주(파이프라인 흐름 확인용)
   }
   const from = process.env.EMAIL_FROM || "Pinged <onboarding@resend.dev>";
+  // reply_to(있으면)는 정당성 신호 → 도달률에 도움. 발신 도메인 인증이 본질적 해법이다.
+  const replyTo = process.env.EMAIL_REPLY_TO || undefined;
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -30,7 +32,7 @@ export async function deliver(
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to, subject, text, html }),
+      body: JSON.stringify({ from, to, subject, text, html, reply_to: replyTo }),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
